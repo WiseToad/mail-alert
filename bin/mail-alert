@@ -1,0 +1,51 @@
+#!/opt/mail-alert/venv/bin/python3
+
+import sys, os
+from dotenv import dotenv_values
+from smtplib import SMTP
+from email.message import EmailMessage
+
+HOME_DIR = os.path.dirname(os.path.realpath(__file__))
+CONFIG_DIR = os.path.normpath(f"{HOME_DIR}/../config")
+
+def main():
+    if len(sys.argv) < 2:
+        print(f"Usage: mail-alert subject [recipient...]\n"
+            "The email body is read from stdin\n")
+        sys.exit(1)
+
+    config = {
+        **dotenv_values(f"{CONFIG_DIR}/mail-alert.conf"),
+        **os.environ
+    }
+
+    try:
+        smtpHost = config["SMTP_HOST"]
+        smtpPort = config.get("SMTP_PORT", 587)
+        smtpUsername = config["SMTP_USERNAME"]
+        smtpPassword = config["SMTP_PASSWORD"]
+        smtpFrom = config["SMTP_FROM"]
+    except KeyError as e:
+        print(f"Mandatory variable doesn't specified: {e.args[0]}")
+        sys.exit(1)
+
+    recipients = ",".join(sys.argv[2:]) if len(sys.argv) > 2 else config.get("RECIPIENTS")
+    if recipients is None:
+        print(f"No recipients specified either with the command line or RECIPIENTS env variable")
+        sys.exit(1)
+
+    subject = sys.argv[1]
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = smtpFrom
+    msg["To"] = recipients
+    msg.set_content(sys.stdin.read())
+
+    with SMTP(smtpHost, smtpPort, timeout=10) as smtp:
+        smtp.starttls()
+        smtp.login(smtpUsername, smtpPassword)
+        smtp.send_message(msg)
+
+if __name__ == "__main__":
+    main()
