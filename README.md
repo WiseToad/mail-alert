@@ -1,4 +1,4 @@
-The simple and small Python-based mail alerter.
+The [mail-alert](https://github.com/WiseToad/mail-alert), a primitive Python-based mail alerter.
 
 ## PREREQUISITES
 
@@ -73,3 +73,7 @@ OnFailure=alert@.service
 ```sh
 echo "Alert text" | sudo mail-alert "Alert subject" ["recipient@example.com" ...]
 ```
+
+## REFERENCES
+
+- [mail-alert](https://github.com/WiseToad/mail-alert) - This project on GitHub
